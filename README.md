@@ -32,8 +32,8 @@ To deploy the Flask app, you can use a cloud service like AWS, GCP or Azure, or 
 This project is licensed under the Apache License 2.0. The Apache License 2.0 is also compatible with the EUPL (European Union Public Licence). See the LICENSE file for details.
 
 ## Authors
-Andreas Johansson
-Han Fan
+- Andreas Johansson
+- Han Fan
 
 ## Acknowledgements
 This project was funded by the EU project Digital Identification and Support of Under-Archiving Students (DIDUNAS). We would like to thank the project participants for their contributions.
