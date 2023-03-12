@@ -1,0 +1,53 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Mar 12 21:29:17 2023
+
+@author: fanha
+"""
+
+from flask import Flask, request
+from flask_cors import CORS
+
+# Creating the instance of the class Flask
+app = Flask(__name__)
+
+# Using the decorator to create the URL for the web application
+CORS(app, resources=r'/*')
+@app.route('/')
+# The function will return the information displayed on the webpage
+def hello_world():
+    ip_addr = request.remote_addr
+    return '<h1> Your IP address is:' + ip_addr
+
+# /json URL take POST request
+@app.route("/json", methods=['GET','POST'])
+def json_request_handle():
+    
+    # logging
+    app.logger.debug("JSON received...This is interesting!")
+    app.logger.debug(request.get_json(force=True))
+    
+    # Get json data via POST
+    request_json = request.get_json(force=True)
+    
+    # Extract info from the data
+    if request_json: 
+        # 
+        name = request_json['name']
+        gender = request_json['gender']
+         
+        # Handle the data, which will be replaced with adding into a database
+        name = name + 'ROCK'
+        gender = gender + 'ROLL'
+
+        # Check them out
+        print(name)
+        print(gender)
+
+
+    else:
+        return "Sorry, no json data received."
+    
+# Run the application
+if __name__ == '__main__':
+    app.run(debug=True)
