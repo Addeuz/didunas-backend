@@ -1,0 +1,72 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Mar 13 20:58:00 2023
+
+@author: fanha
+"""
+
+
+
+from flask import Flask, render_template
+from flask_pymongo import PyMongo
+from flask import request, jsonify
+import pickle
+import pandas as pd
+import numpy as np
+
+app=Flask(__name__,template_folder='template')
+app.config['DEBUG'] = True  # Debugging enabled
+mongo = PyMongo(app, uri="mongodb://localhost:27017/DIDUNAS_test4flask")  # The database pointed.
+
+model = pickle.load(open('DIDUNAS_predictive_model202303.pkl','rb'))
+
+
+@app.route('/')
+def home():
+    return render_template('page.htm')
+
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    features_list = []
+    features_list.append(request.form.get("nr0"))
+    features_list.append(request.form.get("nr1"))
+    features_list.append(request.form.get("nr2"))
+    features_list.append(request.form.get("nr3"))
+    features_list.append(request.form.get("nr4"))
+    features_list.append(request.form.get("nr5"))
+    features_list.append(request.form.get("nr6"))
+    features_list.append(request.form.get("nr7"))
+    features_list.append(request.form.get("nr8"))
+    features_list.append(request.form.get("nr9"))
+    
+    features = np.array(features_list).reshape([1,10])
+    predict_outcome = model.predict(features)
+
+    if predict_outcome>0:
+        RMD='T'
+    else:
+        RMD='F'
+        
+    record2add = {
+            'student_id': 'test',
+            'er_0': features_list[0],
+            'er_1': features_list[1],
+            'er_2': features_list[2],
+            'er_3': features_list[3],
+            'er_4': features_list[4],
+            'er_5': features_list[5],
+            'er_6': features_list[6],
+            'er_7': features_list[7],
+            'er_8': features_list[8],
+            'er_9': features_list[9],
+            'RMD': RMD,
+        }
+    mongo.db.DIDUNAS_test.insert_one(record2add)  # The document above is inserted.
+    
+    return render_template('page.htm',prediction_display_area='RMD：{}'.format(RMD))
+    
+    
+
+if __name__ == "__main__":
+    app.run( port=80)
