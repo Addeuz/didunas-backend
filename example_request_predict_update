@@ -13,6 +13,7 @@ from flask import request, jsonify
 import pickle
 import pandas as pd
 import numpy as np
+import json
 
 app=Flask(__name__,template_folder='template')
 app.config['DEBUG'] = True  # Debugging enabled
@@ -21,24 +22,52 @@ mongo = PyMongo(app, uri="mongodb://localhost:27017/DIDUNAS_test4flask")  # The 
 model = pickle.load(open('DIDUNAS_predictive_model202303.pkl','rb'))
 
 
+example_json={
+"student_id": "test1792",
+"data": {
+"quantities": 0.7,
+"numberPattern": 0.7,
+"numberLine": 0.7,
+"hiddenNumber": 0.7,
+"numberComparison": 0.7,
+"plus": 0.7,
+"minus": 0.7,
+"colorPattern": 0.7,
+"quantityComparison": 0.7,
+"completionToTen": 0.7}
+}
+
+json_data = json.dumps(example_json) # Pretend this json data is get from DIDUNAS APP.
+
+
 @app.route('/')
 def home():
-    return render_template('page.htm')
+    return render_template('index.html')
 
+@app.route('/send-json', methods=['POST'])
+    
+def handle_json():
+    print('ready to sending json...')
+    
+    content = json.loads(json_data) # Here json_data will be replaced with real-world requested json data.
+    predict(content)
 
-@app.route('/predict', methods=['POST'])
-def predict():
+    return 'JSON handled successfully.'
+
+def predict(content):
     features_list = []
-    features_list.append(request.form.get("nr0"))
-    features_list.append(request.form.get("nr1"))
-    features_list.append(request.form.get("nr2"))
-    features_list.append(request.form.get("nr3"))
-    features_list.append(request.form.get("nr4"))
-    features_list.append(request.form.get("nr5"))
-    features_list.append(request.form.get("nr6"))
-    features_list.append(request.form.get("nr7"))
-    features_list.append(request.form.get("nr8"))
-    features_list.append(request.form.get("nr9"))
+    features_list.append(content["data"]["quantities"])
+    features_list.append(content["data"]["numberPattern"])
+    features_list.append(content["data"]["numberLine"])
+    features_list.append(content["data"]["hiddenNumber"])
+    features_list.append(content["data"]["numberComparison"])
+    features_list.append(content["data"]["plus"])
+    features_list.append(content["data"]["minus"])
+    features_list.append(content["data"]["colorPattern"])
+    features_list.append(content["data"]["quantityComparison"])
+    features_list.append(content["data"]["completionToTen"])
+    
+    student_id= content["student_id"]
     
     features = np.array(features_list).reshape([1,10])
     predict_outcome = model.predict(features)
@@ -49,23 +78,20 @@ def predict():
         RMD='F'
         
     record2add = {
-            'student_id': 'test',
-            'er_0': features_list[0],
-            'er_1': features_list[1],
-            'er_2': features_list[2],
-            'er_3': features_list[3],
-            'er_4': features_list[4],
-            'er_5': features_list[5],
-            'er_6': features_list[6],
-            'er_7': features_list[7],
-            'er_8': features_list[8],
-            'er_9': features_list[9],
+            'student_id': student_id,
+            'quantities': features_list[0],
+            'numberPattern': features_list[1],
+            'numberLine': features_list[2],
+            'hiddenNumber': features_list[3],
+            'numberComparison': features_list[4],
+            'plus': features_list[5],
+            'minus': features_list[6],
+            'colorPattern': features_list[7],
+            'quantityComparison': features_list[8],
+            'completionToTen': features_list[9],
             'RMD': RMD,
         }
     mongo.db.DIDUNAS_test.insert_one(record2add)  # The document above is inserted.
-    
-    return render_template('page.htm',prediction_display_area='RMD：{}'.format(RMD))
-    
     
 
 if __name__ == "__main__":
