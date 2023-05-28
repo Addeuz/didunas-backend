@@ -23,19 +23,19 @@ def home():
 
 def predict():
     features_list = []
-    features_list.append(request.form.get("nr0"))
-    features_list.append(request.form.get("nr1"))
-    features_list.append(request.form.get("nr2"))
-    features_list.append(request.form.get("nr3"))
-    features_list.append(request.form.get("nr4"))
-    features_list.append(request.form.get("nr5"))
-    features_list.append(request.form.get("nr6"))
-    features_list.append(request.form.get("nr7"))
-    features_list.append(request.form.get("nr8"))
-    features_list.append(request.form.get("nr9"))
+    features_list.append(request.form.get("plus"))
+    features_list.append(request.form.get("minus"))
+    features_list.append(request.form.get("quantities"))
+    features_list.append(request.form.get("hiddenNumber"))
+    features_list.append(request.form.get("numberLine"))
+    features_list.append(request.form.get("numberPattern"))
+    features_list.append(request.form.get("numberComparison"))
+    features_list.append(request.form.get("quantityComparison"))
+    features_list.append(request.form.get("colorPattern"))
+    features_list.append(request.form.get("completionToTen"))
     
     features = np.array(features_list).reshape([1,10])
-    predict_RMD, predict_pValue = model.hybrid_prediction(features)
+    predict_RMD, predict_pValue = model.hybrid_prediction(features) #note that here both Y/N predciton and a P-value predciotion are made.
 
     if predict_RMD>0:
         RMD='T'
