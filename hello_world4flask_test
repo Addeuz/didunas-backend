@@ -10,7 +10,7 @@ import pickle
 import pandas as pd
 import numpy as np
 
-model = pickle.load(open('DIDUNAS_predictive_model202303.pkl','rb'))
+model = pickle.load(open('DIDUNAS_predictive_model202305.pkl','rb'))
 
 
 app=Flask(__name__,template_folder='template')
@@ -35,9 +35,9 @@ def predict():
     features_list.append(request.form.get("nr9"))
     
     features = np.array(features_list).reshape([1,10])
-    predict_outcome = model.predict(features)
+    predict_RMD, predict_pValue = model.hybrid_prediction(features)
 
-    if predict_outcome>0:
+    if predict_RMD>0:
         RMD='T'
     else:
         RMD='F'
