@@ -110,7 +110,7 @@ class HybridEnsembleModel:
                 if value < 1 and yhat[count] >= 0.25:
                     yhat[count] = yhat[count] * yhat[count]
 
-        return yhat
+        return y_flag, yhat
 
     
     
