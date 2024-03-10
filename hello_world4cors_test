@@ -22,20 +22,20 @@ def hello_world():
 # /json URL take POST request
 @app.route("/json", methods=['GET','POST'])
 def json_request_handle():
-    
+
     # logging
     app.logger.debug("JSON received...This is interesting!")
     app.logger.debug(request.get_json(force=True))
-    
+
     # Get json data via POST
     request_json = request.get_json(force=True)
-    
+
     # Extract info from the data
-    if request_json: 
-        # 
+    if request_json:
+        #
         name = request_json['name']
         gender = request_json['gender']
-         
+
         # Handle the data, which will be replaced with adding into a database
         name = name + 'ROCK'
         gender = gender + 'ROLL'
@@ -47,7 +47,9 @@ def json_request_handle():
 
     else:
         return "Sorry, no json data received."
-    
+
+    return {}
+
 # Run the application
 if __name__ == '__main__':
     app.run(debug=True)
