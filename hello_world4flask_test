@@ -9,9 +9,39 @@ from flask import Flask, request, jsonify, render_template
 import pickle
 import pandas as pd
 import numpy as np
+from flask_cors import CORS
+import logging
 
-model = pickle.load(open('DIDUNAS_predictive_model202305.pkl','rb'))
+logging.getLogger('flask_cors').level = logging.DEBUG
 
+class HybridEnsembleModel:
+    def __init__(self, classifier, regressor):
+        self.classifier = classifier
+        self.regressor = regressor
+
+    def hybrid_prediction(self, X_test):
+        if X_test.shape[1] < 2:
+            y_flag = self.classifier.predict(X_test.reshape([1, 10]))
+            yhat = self.regressor.predict(X_test.reshape([1, 10]))
+
+            if y_flag > 0 and yhat < 0.25:
+                yhat = np.sqrt(yhat)
+            if y_flag < 1 and yhat > 0.25:
+                yhat = yhat * yhat
+
+        else:
+            y_flag = self.classifier.predict(X_test)
+            yhat = self.regressor.predict(X_test)
+
+            for count, value in enumerate(y_flag):
+                if value > 0 and yhat[count] < 0.25:
+                    yhat[count] = np.sqrt(yhat)
+                if value < 1 and yhat[count] >= 0.25:
+                    yhat[count] = yhat[count] * yhat[count]
+
+        return y_flag, yhat
+
+model = pickle.load(open('DIDUNAS_regression_model202305.pkl','rb'))
 
 app=Flask(__name__,template_folder='template')
 
@@ -19,21 +49,22 @@ app=Flask(__name__,template_folder='template')
 def home():
     return render_template('page.htm')
 
-@app.route('/predict', methods=['POST'])
-
+@app.route('/api/predict', methods=['POST'])
 def predict():
     features_list = []
-    features_list.append(request.form.get("plus"))
-    features_list.append(request.form.get("minus"))
     features_list.append(request.form.get("quantities"))
+    features_list.append(request.form.get("quantityComparison"))
+    features_list.append(request.form.get("numberComparison"))
+    features_list.append(request.form.get("colorPattern"))
+    features_list.append(request.form.get("numberPattern"))
     features_list.append(request.form.get("hiddenNumber"))
     features_list.append(request.form.get("numberLine"))
-    features_list.append(request.form.get("numberPattern"))
-    features_list.append(request.form.get("numberComparison"))
-    features_list.append(request.form.get("quantityComparison"))
-    features_list.append(request.form.get("colorPattern"))
     features_list.append(request.form.get("completionToTen"))
-    
+    features_list.append(request.form.get("plus"))
+    features_list.append(request.form.get("minus"))
+
+    print(features_list)
+
     features = np.array(features_list).reshape([1,10])
     predict_RMD, predict_pValue = model.hybrid_prediction(features) #note that here both Y/N predciton and a P-value predciotion are made.
 
@@ -41,8 +72,9 @@ def predict():
         RMD='T'
     else:
         RMD='F'
-    return render_template('page.htm',prediction_display_area='RMD：{}'.format(RMD))
-    
-    
+
+    return {"prediction": RMD}
+
+
 if __name__ == "__main__":
-    app.run(port=80,debug = True)
+    app.run(port=5000,debug = True)
