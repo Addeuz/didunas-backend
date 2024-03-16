@@ -49,24 +49,30 @@ model = pickle.load(open('DIDUNAS_regression_model202305.pkl','rb'))
 
 @app.route('/api/predict', methods=['POST'])
 def predict():
-    features_list = []
-    features_list.append(request.form.get("quantities"))
-    features_list.append(request.form.get("quantityComparison"))
-    features_list.append(request.form.get("numberComparison"))
-    features_list.append(request.form.get("colorPattern"))
-    features_list.append(request.form.get("numberPattern"))
-    features_list.append(request.form.get("hiddenNumber"))
-    features_list.append(request.form.get("numberLine"))
-    features_list.append(request.form.get("completionToTen"))
-    features_list.append(request.form.get("plus"))
-    features_list.append(request.form.get("minus"))
+    data = request.json
+    predictions = {}
 
-    features = np.array(features_list).reshape([1,10])
-    predict_RMD, predict_pValue = model.hybrid_prediction(features) #note that here both Y/N predciton and a P-value predciotion are made.
+    for user_id, value in data.items():
+        features_list = [
+            value['quantities'],
+            value['quantityComparison'],
+            value['numberComparison'],
+            value['colorPattern'],
+            value['numberPattern'],
+            value['hiddenNumber'],
+            value['numberLine'],
+            value['completionToTen'],
+            value['plus'],
+            value['minus'],
+        ]
+        features = np.array(features_list).reshape([1,10])
+        predict_RMD, predict_pValue = model.hybrid_prediction(features) #note that here both Y/N predciton and a P-value predciotion are made.
 
-    if predict_RMD>0:
-        RMD='T'
-    else:
-        RMD='F'
+        if predict_RMD>0:
+            RMD='T'
+        else:
+            RMD='F'
 
-    return {"prediction": RMD}
+        predictions[user_id] = RMD
+
+    return predictions
