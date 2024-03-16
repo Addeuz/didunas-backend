@@ -5,14 +5,12 @@ Spyder Editor
 This is a temporary script file.
 """
 
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request
 import pickle
-import pandas as pd
 import numpy as np
 from flask_cors import CORS
 import logging
-
-logging.getLogger('flask_cors').level = logging.DEBUG
+import __main__
 
 class HybridEnsembleModel:
     def __init__(self, classifier, regressor):
@@ -40,12 +38,14 @@ class HybridEnsembleModel:
                     yhat[count] = yhat[count] * yhat[count]
 
         return y_flag, yhat
+__main__.HybridEnsembleModel = HybridEnsembleModel
 
-model = pickle.load(open('DIDUNAS_regression_model202305.pkl','rb'))
+logging.getLogger('flask_cors').level = logging.DEBUG
 
 app=Flask(__name__)
-
 cors = CORS(app, resources={r"/api/*": {"origins": "https://madita.vercel.app"}})
+
+model = pickle.load(open('DIDUNAS_regression_model202305.pkl','rb'))
 
 @app.route('/api/predict', methods=['POST'])
 def predict():
@@ -70,7 +70,3 @@ def predict():
         RMD='F'
 
     return {"prediction": RMD}
-
-
-if __name__ == "__main__":
-    app.run(port=8000,debug = False)
