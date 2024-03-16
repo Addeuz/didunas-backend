@@ -43,11 +43,9 @@ class HybridEnsembleModel:
 
 model = pickle.load(open('DIDUNAS_regression_model202305.pkl','rb'))
 
-app=Flask(__name__,template_folder='template')
+app=Flask(__name__)
 
-@app.route('/')
-def home():
-    return render_template('page.htm')
+cors = CORS(app, resources={r"/api/*": {"origins": "https://madita.vercel.app"}})
 
 @app.route('/api/predict', methods=['POST'])
 def predict():
@@ -63,8 +61,6 @@ def predict():
     features_list.append(request.form.get("plus"))
     features_list.append(request.form.get("minus"))
 
-    print(features_list)
-
     features = np.array(features_list).reshape([1,10])
     predict_RMD, predict_pValue = model.hybrid_prediction(features) #note that here both Y/N predciton and a P-value predciotion are made.
 
@@ -77,4 +73,4 @@ def predict():
 
 
 if __name__ == "__main__":
-    app.run(port=5000,debug = True)
+    app.run(port=8000,debug = False)
